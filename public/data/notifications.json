@@ -1,0 +1,40 @@
+{
+  "notifications": [
+    {
+      "id": "1",
+      "type": "like",
+      "userId": "2",
+      "postId": "1",
+      "read": false,
+      "content": "liked your post",
+      "createdAt": "2025-10-15T08:30:00Z"
+    },
+    {
+      "id": "2",
+      "type": "comment",
+      "userId": "3",
+      "postId": "4",
+      "read": false,
+      "content": "commented on your post",
+      "createdAt": "2025-10-15T07:15:00Z"
+    },
+    {
+      "id": "3",
+      "type": "follow",
+      "userId": "2",
+      "postId": null,
+      "read": true,
+      "content": "started following you",
+      "createdAt": "2025-10-14T20:45:00Z"
+    },
+    {
+      "id": "4",
+      "type": "like",
+      "userId": "1",
+      "postId": "2",
+      "read": true,
+      "content": "liked your post",
+      "createdAt": "2025-10-14T19:20:00Z"
+    }
+  ]
+}

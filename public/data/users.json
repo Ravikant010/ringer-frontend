@@ -1,0 +1,55 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "username": "john_doe",
+      "email": "john@example.com",
+      "password": "password123",
+      "firstName": "John",
+      "lastName": "Doe",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
+      "bio": "Software developer | Coffee enthusiast ☕",
+      "location": "San Francisco, CA",
+      "website": "https://johndoe.com",
+      "isVerified": true,
+      "followersCount": 1250,
+      "followingCount": 380,
+      "postsCount": 156,
+      "createdAt": "2023-01-15T10:30:00Z"
+    },
+    {
+      "id": "2",
+      "username": "sarah_wilson",
+      "email": "sarah@example.com",
+      "password": "password123",
+      "firstName": "Sarah",
+      "lastName": "Wilson",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah",
+      "bio": "Designer | Artist 🎨 | Nature lover 🌿",
+      "location": "New York, NY",
+      "website": "https://sarahwilson.design",
+      "isVerified": true,
+      "followersCount": 2840,
+      "followingCount": 520,
+      "postsCount": 289,
+      "createdAt": "2023-02-20T14:20:00Z"
+    },
+    {
+      "id": "3",
+      "username": "mike_chen",
+      "email": "mike@example.com",
+      "password": "password123",
+      "firstName": "Mike",
+      "lastName": "Chen",
+      "avatar": "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
+      "bio": "Tech entrepreneur | Startup advisor 🚀",
+      "location": "Austin, TX",
+      "website": null,
+      "isVerified": false,
+      "followersCount": 890,
+      "followingCount": 420,
+      "postsCount": 98,
+      "createdAt": "2023-03-10T09:15:00Z"
+    }
+  ]
+}

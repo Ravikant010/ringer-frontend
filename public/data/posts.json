@@ -1,0 +1,54 @@
+{
+  "posts": [
+    {
+      "id": "1",
+      "authorId": "1",
+      "content": "Just launched my new project! Check it out 🚀",
+      "mediaUrl": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800",
+      "likeCount": 245,
+      "commentCount": 12,
+      "isLiked": false,
+      "createdAt": "2025-10-14T18:30:00Z"
+    },
+    {
+      "id": "2",
+      "authorId": "2",
+      "content": "Beautiful sunset today 🌅",
+      "mediaUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800",
+      "likeCount": 892,
+      "commentCount": 34,
+      "isLiked": true,
+      "createdAt": "2025-10-14T17:15:00Z"
+    },
+    {
+      "id": "3",
+      "authorId": "3",
+      "content": "Excited to announce our Series A funding! 💰 Thanks to all our supporters!",
+      "mediaUrl": null,
+      "likeCount": 456,
+      "commentCount": 28,
+      "isLiked": false,
+      "createdAt": "2025-10-14T15:45:00Z"
+    },
+    {
+      "id": "4",
+      "authorId": "1",
+      "content": "Coffee and code - the perfect combination ☕💻",
+      "mediaUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800",
+      "likeCount": 178,
+      "commentCount": 8,
+      "isLiked": true,
+      "createdAt": "2025-10-14T12:20:00Z"
+    },
+    {
+      "id": "5",
+      "authorId": "2",
+      "content": "New design system coming soon! Here's a sneak peek 👀",
+      "mediaUrl": "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=800",
+      "likeCount": 523,
+      "commentCount": 19,
+      "isLiked": false,
+      "createdAt": "2025-10-14T10:00:00Z"
+    }
+  ]
+}

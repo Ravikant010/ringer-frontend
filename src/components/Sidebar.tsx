@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore, useNotificationStore } from '../lib/store';
-import { Home, Compass, PlusSquare, Bell, User, LogOut, Share2 } from 'lucide-react';
+import { Home, Compass, PlusSquare, Bell, User, LogOut, Share2, MessageCircle } from 'lucide-react';
 
 export default function Sidebar() {
   const user = useAuthStore((state) => state.user);
@@ -18,7 +18,8 @@ export default function Sidebar() {
     // { to: '/explore', icon: Compass, label: 'Explore' },
     { to: '/create', icon: PlusSquare, label: 'Create' },
     { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
-    { to: '/profile', icon: User, label: 'Profile' }
+    { to: '/profile', icon: User, label: 'Profile' },
+    { to: '/messages', icon: MessageCircle, label: 'Messages' },
   ];
 
   return (

@@ -63,29 +63,90 @@ interface NotificationStore {
   markAllAsRead: () => void;
 }
 
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  avatar: string | null;
+  bio: string | null;
+  location: string | null;
+  website: string | null;
+  isVerified: boolean;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
+}
+
+interface AuthStore {
+  user: User | null;
+  isAuthenticated: boolean;
+  loading: boolean;
+  setUser: (user: User | null) => void;
+  logout: () => void;
+  init: () => Promise<void>;
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       isAuthenticated: false,
+      loading: false,
       setUser: (user) => {
         if (user) {
+          localStorage.setItem('accessToken', localStorage.getItem('accessToken') || '');
           localStorage.setItem('currentUserId', user.id);
         } else {
+          localStorage.removeItem('accessToken');
           localStorage.removeItem('currentUserId');
         }
         set({ user, isAuthenticated: !!user });
       },
       logout: () => {
+        localStorage.removeItem('accessToken');
         localStorage.removeItem('currentUserId');
         set({ user: null, isAuthenticated: false });
-      }
+      },
+      init: async () => {
+        set({ loading: true });
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          set({ loading: false, user: null, isAuthenticated: false });
+          return;
+        }
+        try {
+          const res = await fetch('http://localhost:3001/api/v1/users/me', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+          if (!res.ok) {
+            throw new Error('Token invalid or expired');
+          }
+          const data = await res.json();
+          if (!data?.success || !data?.data) {
+            throw new Error('Invalid user data');
+          }
+          set({ user: data.data, isAuthenticated: true });
+        } catch (error) {
+          console.error('Auth init failed:', error);
+          // Token invalid, logout
+          get().logout();
+        } finally {
+          set({ loading: false });
+        }
+      },
     }),
     {
-      name: 'auth-storage'
+      name: 'auth-storage',
     }
   )
 );
+
 
 export const usePostStore = create<PostStore>((set) => ({
   posts: [],

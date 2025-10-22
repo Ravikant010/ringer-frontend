@@ -7,8 +7,14 @@ import { formatNumber } from '../lib/utils';
 
 export default function Profile() {
   const user = useAuthStore((state) => state.user);
+
   const [profileData, setProfileData] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    followerCount: 0,
+    followingCount: 0,
+    postCount: 0
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,70 +25,45 @@ export default function Profile() {
     setLoading(true);
     try {
       const token = localStorage.getItem('accessToken');
-      if (!token) {
-        throw new Error('Not authenticated');
+
+      // ✅ Use user from AuthStore to avoid rate limiting
+      if (!user?.id) {
+        throw new Error('Not authenticated. Please login again.');
       }
 
-      // ✅ STEP 1: Get current user ID from /me endpoint
-      const meRes = await fetch('http://localhost:3001/api/v1/users/me', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const userId = user.id;
 
-      if (!meRes.ok) {
-        throw new Error(`Failed to get user info: ${meRes.status}`);
-      }
+      const fetchWithAuth = async (url: string) => {
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        if (res.status === 401) {
+          throw new Error('Unauthorized. Please login again.');
+        }
+        if (res.status === 429) {
+          throw new Error('Too many requests. Please wait a moment.');
+        }
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${res.status}`);
+        }
+        return res.json();
+      };
 
-      const meData = await meRes.json();
-      console.log('Me response:', meData);
-
-      if (!meData?.success || !meData?.data?.id) {
-        throw new Error('Invalid user data');
-      }
-
-      const userId = meData.data.id;
-
-      // ✅ STEP 2: Get user profile - FIXED ROUTE
-      // Changed from /profile/:userId to /:userId (matches backend)
-      const profileRes = await fetch(`http://localhost:3001/api/v1/users/${userId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!profileRes.ok) {
-        throw new Error(`Failed to load profile: ${profileRes.status}`);
-      }
-
-      const profileJson = await profileRes.json();
-      console.log('Profile response:', profileJson);
-
+      // Step 1: get user profile by ID
+      const profileJson = await fetchWithAuth(`http://localhost:3001/api/v1/users/${userId}`);
       if (!profileJson?.success || !profileJson?.data) {
-        throw new Error('Profile not available');
+        throw new Error('Profile not available.');
       }
 
-      // ✅ STEP 3: Get user's posts
-      const postsRes = await fetch(`http://localhost:3002/api/v1/posts?authorId=${userId}&limit=50`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Step 2: get user posts
+      const postsJson = await fetchWithAuth(
+        `http://localhost:3002/api/v1/posts?authorId=${userId}&limit=50`
+      );
 
-      if (!postsRes.ok) {
-        throw new Error(`Failed to load posts: ${postsRes.status}`);
-      }
-
-      const postsJson = await postsRes.json();
-      console.log('Posts response:', postsJson);
-
-      // ✅ Normalize posts response
       let postsArray = [];
       if (Array.isArray(postsJson?.data)) {
         postsArray = postsJson.data;
@@ -91,6 +72,44 @@ export default function Profile() {
       } else if (postsJson?.data && Array.isArray(postsJson.data.items)) {
         postsArray = postsJson.data.items;
       }
+
+      // ✅ Step 3: Fetch follower/following counts from user service
+     // ✅ Step 3: Fetch follower/following from SOCIAL SERVICE (port 3004)
+try {
+  const [followersRes, followingRes] = await Promise.all([
+    fetchWithAuth(`http://localhost:3004/api/v1/followers/${userId}`), // ✅ Changed to 3004
+    fetchWithAuth(`http://localhost:3004/api/v1/following/${userId}`)  // ✅ Changed to 3004
+  ]);
+
+  console.log('📦 Followers response:', followersRes);
+  console.log('📦 Following response:', followingRes);
+
+  // Count the arrays returned
+  const followerCount = Array.isArray(followersRes?.data)
+    ? followersRes.data.length
+    : 0;
+
+  const followingCount = Array.isArray(followingRes?.data)
+    ? followingRes.data.length
+    : 0;
+
+  setStats({
+    followerCount,
+    followingCount,
+    postCount: postsArray.length
+  });
+
+  console.log('✅ Follower count:', followerCount);
+  console.log('✅ Following count:', followingCount);
+} catch (error) {
+  console.error('Failed to fetch follow lists:', error);
+  setStats({
+    followerCount: profileJson.data.followerCount || 0,
+    followingCount: profileJson.data.followingCount || 0,
+    postCount: postsArray.length
+  });
+}
+
 
       setProfileData(profileJson.data);
       setPosts(postsArray);
@@ -108,6 +127,7 @@ export default function Profile() {
 
   const removePost = (postId: string) => {
     setPosts(posts.filter((p) => p.id !== postId));
+    setStats(prev => ({ ...prev, postCount: prev.postCount - 1 }));
   };
 
   if (loading) {
@@ -167,9 +187,7 @@ export default function Profile() {
                 <p className="text-gray-500">@{profileData.username}</p>
               </div>
 
-              {profileData.bio && (
-                <p className="text-gray-700 mb-4">{profileData.bio}</p>
-              )}
+              {profileData.bio && <p className="text-gray-700 mb-4">{profileData.bio}</p>}
 
               <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-6">
                 {profileData.location && (
@@ -181,28 +199,46 @@ export default function Profile() {
                 {profileData.website && (
                   <div className="flex items-center gap-1">
                     <LinkIcon className="w-4 h-4" />
-                    <a href={profileData.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a
+                      href={profileData.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline"
+                    >
                       {profileData.website}
                     </a>
                   </div>
                 )}
                 <div className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
-                  <span>Joined {new Date(profileData.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                  <span>
+                    Joined{' '}
+                    {new Date(profileData.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 </div>
               </div>
 
+              {/* ✅ Display accurate stats */}
               <div className="flex gap-6 text-sm">
                 <div>
-                  <span className="font-bold text-gray-900">{formatNumber(profileData.followingCount || 0)}</span>
+                  <span className="font-bold text-gray-900">
+                    {formatNumber(stats.followingCount)}
+                  </span>
                   <span className="text-gray-600 ml-1">Following</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-900">{formatNumber(profileData.followerCount || 0)}</span>
+                  <span className="font-bold text-gray-900">
+                    {formatNumber(stats.followerCount)}
+                  </span>
                   <span className="text-gray-600 ml-1">Followers</span>
                 </div>
                 <div>
-                  <span className="font-bold text-gray-900">{formatNumber(profileData.postCount || posts.length)}</span>
+                  <span className="font-bold text-gray-900">
+                    {formatNumber(stats.postCount)}
+                  </span>
                   <span className="text-gray-600 ml-1">Posts</span>
                 </div>
               </div>
@@ -220,12 +256,7 @@ export default function Profile() {
               </div>
             ) : (
               posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={{ ...post, author: profileData }}
-                  onUpdate={updatePost}
-                  onDelete={removePost}
-                />
+                <PostCard key={post.id} post={{ ...post, author: profileData }} onUpdate={updatePost} onDelete={removePost} />
               ))
             )}
           </div>
